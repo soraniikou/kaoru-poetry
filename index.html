@@ -1,1 +1,105 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>薫 — 詩と本音のアプリ集</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@300;400&family=IM+Fell+English:ital@1&display=swap');
 
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: #faf4f0;
+  color: #2d1f1a;
+  font-family: 'Shippori Mincho', serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 32px;
+}
+
+h1 {
+  font-size: clamp(22px, 5vw, 36px);
+  font-weight: 300;
+  letter-spacing: 0.5em;
+  margin-bottom: 12px;
+  color: #2d1f1a;
+}
+
+.sub {
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: 14px;
+  letter-spacing: 0.25em;
+  color: #c4826a;
+  margin-bottom: 64px;
+}
+
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  width: 100%;
+  max-width: 480px;
+}
+
+.card {
+  display: block;
+  text-decoration: none;
+  border: 1px solid rgba(196,130,106,0.3);
+  padding: 36px 40px;
+  transition: all 0.4s ease;
+  position: relative;
+  overflow: hidden;
+  background: rgba(255,255,255,0.5);
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(196,130,106,0.06), transparent);
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+
+.card:hover::before { opacity: 1; }
+.card:hover { border-color: rgba(196,130,106,0.6); transform: translateY(-2px); }
+
+.card-icon { font-size: 28px; margin-bottom: 16px; }
+.card-title { font-size: 18px; font-weight: 400; letter-spacing: 0.3em; color: #2d1f1a; margin-bottom: 10px; }
+.card-desc { font-size: 13px; line-height: 2; letter-spacing: 0.1em; color: #2d1f1a; opacity: 0.55; }
+
+.footer {
+  margin-top: 72px;
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  color: #c4826a;
+  opacity: 0.5;
+}
+</style>
+</head>
+<body>
+  <h1>薫</h1>
+  <div class="sub">詩と本音のアプリ集</div>
+
+  <div class="cards">
+    <a class="card" href="kaoru_poetry.html">
+      <div class="card-icon">🌸</div>
+      <div class="card-title">詩集 — 薫</div>
+      <div class="card-desc">季節の香りと共に、詩を書く場所。<br>春夏秋冬、それぞれの言葉が宿る。</div>
+    </a>
+
+    <a class="card" href="lonely_letter.html">
+      <div class="card-icon">🌙</div>
+      <div class="card-title">今夜の本音</div>
+      <div class="card-desc">誰にも見せなくていい、ここだけの言葉。<br>今夜の自分に、受け取ってもらう。</div>
+    </a>
+  </div>
+
+  <div class="footer">思考と行動が明るく軽くなるアプリを目指して</div>
+</body>
+</html>
