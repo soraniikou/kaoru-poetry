@@ -1,1 +1,523 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>今夜の本音</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;500&family=Cormorant+Garamond:ital,wght@0,300;1,300&display=swap');
 
+  :root {
+    --night: #0a0a0f;
+    --deep: #12111a;
+    --mist: #1e1c2e;
+    --rain: #2a2840;
+    --pale: #c8c0d8;
+    --silver: #e8e0f0;
+    --glow: #7a6fa0;
+    --tear: #4a90d9;
+    --warm: #c8956c;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--night);
+    color: var(--pale);
+    font-family: 'Noto Serif JP', serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    cursor: default;
+  }
+
+  /* 雨の背景 */
+  .rain-bg {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .rain-drop {
+    position: absolute;
+    width: 1px;
+    background: linear-gradient(to bottom, transparent, rgba(74,144,217,0.15), transparent);
+    animation: fall linear infinite;
+  }
+
+  @keyframes fall {
+    from { transform: translateY(-100px); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    to { transform: translateY(110vh); opacity: 0; }
+  }
+
+  /* 月の光 */
+  .moon {
+    position: fixed;
+    top: -80px;
+    right: 10%;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 40% 40%, rgba(255,250,220,0.06), transparent 70%);
+    box-shadow: 0 0 80px 40px rgba(200,192,216,0.04);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 560px;
+    margin: 0 auto;
+    padding: 60px 28px 120px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  /* ヘッダー */
+  .header {
+    text-align: center;
+    padding: 40px 0 60px;
+    opacity: 0;
+    animation: rise 1.2s ease forwards 0.3s;
+  }
+
+  .header .time {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 13px;
+    letter-spacing: 0.3em;
+    color: var(--glow);
+    margin-bottom: 16px;
+  }
+
+  .header h1 {
+    font-size: 22px;
+    font-weight: 300;
+    letter-spacing: 0.4em;
+    color: var(--silver);
+  }
+
+  .header .subtitle {
+    margin-top: 10px;
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    color: var(--glow);
+    opacity: 0.7;
+  }
+
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* 感情ボタン群 */
+  .feeling-section {
+    opacity: 0;
+    animation: rise 1.2s ease forwards 0.7s;
+    margin-bottom: 48px;
+  }
+
+  .feeling-label {
+    font-size: 11px;
+    letter-spacing: 0.35em;
+    color: var(--glow);
+    margin-bottom: 20px;
+    text-align: center;
+  }
+
+  .feelings {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+  }
+
+  .feeling-btn {
+    background: transparent;
+    border: 1px solid rgba(122,111,160,0.25);
+    color: var(--pale);
+    padding: 10px 20px;
+    border-radius: 40px;
+    font-family: 'Noto Serif JP', serif;
+    font-size: 13px;
+    cursor: pointer;
+    letter-spacing: 0.15em;
+    transition: all 0.4s ease;
+  }
+
+  .feeling-btn:hover, .feeling-btn.active {
+    background: rgba(122,111,160,0.15);
+    border-color: var(--glow);
+    color: var(--silver);
+    box-shadow: 0 0 20px rgba(122,111,160,0.2);
+  }
+
+  /* テキストエリア */
+  .write-section {
+    opacity: 0;
+    animation: rise 1.2s ease forwards 1.1s;
+    margin-bottom: 32px;
+  }
+
+  .write-label {
+    font-size: 11px;
+    letter-spacing: 0.35em;
+    color: var(--glow);
+    margin-bottom: 16px;
+    display: block;
+  }
+
+  textarea {
+    width: 100%;
+    min-height: 180px;
+    background: rgba(30,28,46,0.5);
+    border: 1px solid rgba(122,111,160,0.2);
+    border-radius: 4px;
+    color: var(--pale);
+    font-family: 'Noto Serif JP', serif;
+    font-size: 15px;
+    font-weight: 300;
+    line-height: 2;
+    padding: 24px;
+    resize: none;
+    outline: none;
+    letter-spacing: 0.05em;
+    transition: border-color 0.4s;
+  }
+
+  textarea::placeholder {
+    color: rgba(122,111,160,0.4);
+    font-style: italic;
+    font-size: 14px;
+  }
+
+  textarea:focus {
+    border-color: rgba(122,111,160,0.5);
+    background: rgba(30,28,46,0.8);
+  }
+
+  /* 肯定メッセージ */
+  .affirmation {
+    opacity: 0;
+    animation: rise 1.2s ease forwards 1.5s;
+    padding: 32px;
+    border-left: 1px solid rgba(122,111,160,0.3);
+    margin-bottom: 40px;
+    position: relative;
+  }
+
+  .affirmation::before {
+    content: '';
+    position: absolute;
+    left: -1px;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 40px;
+    width: 1px;
+    background: var(--glow);
+    box-shadow: 0 0 8px var(--glow);
+  }
+
+  .affirmation-text {
+    font-size: 15px;
+    font-weight: 300;
+    line-height: 2.2;
+    color: var(--pale);
+    letter-spacing: 0.08em;
+    min-height: 60px;
+    transition: opacity 0.6s ease;
+  }
+
+  /* 送信ボタン */
+  .send-section {
+    opacity: 0;
+    animation: rise 1.2s ease forwards 1.9s;
+    text-align: center;
+  }
+
+  .send-btn {
+    background: transparent;
+    border: 1px solid rgba(200,149,108,0.4);
+    color: var(--warm);
+    padding: 16px 48px;
+    font-family: 'Noto Serif JP', serif;
+    font-size: 13px;
+    letter-spacing: 0.4em;
+    cursor: pointer;
+    transition: all 0.4s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .send-btn:hover {
+    background: rgba(200,149,108,0.08);
+    box-shadow: 0 0 30px rgba(200,149,108,0.15);
+  }
+
+  .send-btn::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border: 1px solid transparent;
+    transition: all 0.4s;
+  }
+
+  /* 保存された手紙 */
+  .letters-section {
+    margin-top: 64px;
+    opacity: 0;
+    animation: rise 1.2s ease forwards 2.2s;
+  }
+
+  .letters-label {
+    font-size: 11px;
+    letter-spacing: 0.35em;
+    color: var(--glow);
+    margin-bottom: 24px;
+    text-align: center;
+    opacity: 0.7;
+  }
+
+  .letter-card {
+    background: rgba(18,17,26,0.8);
+    border: 1px solid rgba(122,111,160,0.12);
+    padding: 28px;
+    margin-bottom: 16px;
+    position: relative;
+    animation: rise 0.8s ease forwards;
+  }
+
+  .letter-date {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 12px;
+    color: var(--glow);
+    margin-bottom: 12px;
+    letter-spacing: 0.2em;
+  }
+
+  .letter-feeling-tag {
+    display: inline-block;
+    font-size: 11px;
+    color: var(--glow);
+    border: 1px solid rgba(122,111,160,0.3);
+    padding: 3px 12px;
+    border-radius: 20px;
+    margin-bottom: 14px;
+    letter-spacing: 0.15em;
+  }
+
+  .letter-text {
+    font-size: 14px;
+    line-height: 2;
+    color: rgba(200,192,216,0.7);
+    letter-spacing: 0.05em;
+  }
+
+  .delete-btn {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: none;
+    border: none;
+    color: rgba(122,111,160,0.3);
+    cursor: pointer;
+    font-size: 16px;
+    transition: color 0.3s;
+  }
+
+  .delete-btn:hover { color: rgba(200,149,108,0.6); }
+
+  /* 完了メッセージ */
+  .toast {
+    position: fixed;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: rgba(122,111,160,0.15);
+    border: 1px solid rgba(122,111,160,0.3);
+    color: var(--silver);
+    padding: 14px 32px;
+    font-size: 13px;
+    letter-spacing: 0.2em;
+    backdrop-filter: blur(10px);
+    opacity: 0;
+    transition: all 0.5s ease;
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  .divider {
+    border: none;
+    border-top: 1px solid rgba(122,111,160,0.1);
+    margin: 8px 0;
+  }
+</style>
+</head>
+<body>
+
+<div class="rain-bg" id="rain"></div>
+<div class="moon"></div>
+
+<div class="container">
+  <div class="header">
+    <div class="time" id="currentTime"></div>
+    <h1>今夜の本音</h1>
+    <div class="subtitle">誰にも見せなくていい、ここだけの言葉</div>
+  </div>
+
+  <div class="feeling-section">
+    <div class="feeling-label">今夜はどんな気持ち？</div>
+    <div class="feelings">
+      <button class="feeling-btn" onclick="selectFeeling(this)">寂しい</button>
+      <button class="feeling-btn" onclick="selectFeeling(this)">疲れた</button>
+      <button class="feeling-btn" onclick="selectFeeling(this)">泣きたい</button>
+      <button class="feeling-btn" onclick="selectFeeling(this)">切ない</button>
+      <button class="feeling-btn" onclick="selectFeeling(this)">怖い</button>
+      <button class="feeling-btn" onclick="selectFeeling(this)">悔しい</button>
+      <button class="feeling-btn" onclick="selectFeeling(this)">会いたい</button>
+      <button class="feeling-btn" onclick="selectFeeling(this)">消えたい</button>
+    </div>
+  </div>
+
+  <div class="write-section">
+    <span class="write-label">言葉にしてみる</span>
+    <textarea id="letterText" placeholder="うまく書けなくていい。誰かに見せるわけじゃないから。ただ、今夜感じていることを、ここに置いてみて。"></textarea>
+  </div>
+
+  <div class="affirmation">
+    <div class="affirmation-text" id="affirmationText">
+      感じていることを、選んでみて。
+    </div>
+  </div>
+
+  <div class="send-section">
+    <button class="send-btn" onclick="saveLetter()">今夜の自分に、受け取ってもらう</button>
+  </div>
+
+  <div class="letters-section">
+    <div class="letters-label">過去の夜から</div>
+    <div id="lettersList"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast">受け取りました。今夜もよく頑張ったね。</div>
+
+<script>
+  // 雨を生成
+  const rainBg = document.getElementById('rain');
+  for (let i = 0; i < 40; i++) {
+    const drop = document.createElement('div');
+    drop.className = 'rain-drop';
+    drop.style.left = Math.random() * 100 + '%';
+    drop.style.height = (60 + Math.random() * 80) + 'px';
+    drop.style.animationDuration = (1.5 + Math.random() * 2) + 's';
+    drop.style.animationDelay = Math.random() * 3 + 's';
+    rainBg.appendChild(drop);
+  }
+
+  // 時刻
+  function updateTime() {
+    const now = new Date();
+    const h = now.getHours().toString().padStart(2,'0');
+    const m = now.getMinutes().toString().padStart(2,'0');
+    document.getElementById('currentTime').textContent = h + ' : ' + m;
+  }
+  updateTime();
+  setInterval(updateTime, 60000);
+
+  // 感情別の肯定メッセージ
+  const affirmations = {
+    '寂しい': 'その寂しさは、あなたがちゃんと誰かを大切にしてきた証拠だよ。\n寂しいと感じられる人は、それだけ深く愛せる人。',
+    '疲れた': '疲れたって言えた。それだけで十分。\n頑張りすぎてきた身体と心に、今夜はただ休む許可を出してあげて。',
+    '泣きたい': '泣いていいよ。声に出して、泣いていい。\n涙は弱さじゃない。溢れるほど感じてきた、その深さの証明だから。',
+    '切ない': 'その切なさを、ちゃんと感じていて。\n逃げなくていい。あなたの中にある、その繊細な痛みは宝物だから。',
+    '怖い': '怖いって感じること、ちゃんと自分に認めてあげて。\n強くあろうとしてきたあなたが、怖いと言えたこと、それが本当の強さだよ。',
+    '悔しい': 'その悔しさは、諦めていない証拠。\nまだ何かを大切に想っているから、悔しいと感じられる。',
+    '会いたい': '会いたいと思う気持ちは、消さなくていい。\nその想いを持ち続けていること、それはあなたの中の愛が、まだ生きている証拠。',
+    '消えたい': '消えたいくらい、しんどかったんだね。\nそこまで追い詰められても、まだここにいてくれていること、それだけで十分だよ。',
+  };
+
+  let selectedFeeling = '';
+
+  function selectFeeling(btn) {
+    document.querySelectorAll('.feeling-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedFeeling = btn.textContent;
+    const text = affirmations[selectedFeeling] || '';
+    const el = document.getElementById('affirmationText');
+    el.style.opacity = '0';
+    setTimeout(() => {
+      el.textContent = text;
+      el.style.opacity = '1';
+    }, 300);
+  }
+
+  // 手紙を保存
+  function saveLetter() {
+    const text = document.getElementById('letterText').value.trim();
+    if (!text && !selectedFeeling) return;
+
+    const letters = JSON.parse(localStorage.getItem('nightLetters') || '[]');
+    const now = new Date();
+    const dateStr = now.getFullYear() + '年' + (now.getMonth()+1) + '月' + now.getDate() + '日 '
+      + now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+
+    letters.unshift({ date: dateStr, feeling: selectedFeeling, text });
+    if (letters.length > 20) letters.pop();
+    localStorage.setItem('nightLetters', JSON.stringify(letters));
+
+    document.getElementById('letterText').value = '';
+    document.querySelectorAll('.feeling-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('affirmationText').textContent = '感じていることを、選んでみて。';
+    selectedFeeling = '';
+
+    showToast();
+    renderLetters();
+  }
+
+  function showToast() {
+    const toast = document.getElementById('toast');
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
+  }
+
+  function renderLetters() {
+    const letters = JSON.parse(localStorage.getItem('nightLetters') || '[]');
+    const list = document.getElementById('lettersList');
+    list.innerHTML = '';
+    letters.forEach((l, i) => {
+      const card = document.createElement('div');
+      card.className = 'letter-card';
+      card.innerHTML = `
+        <button class="delete-btn" onclick="deleteLetter(${i})">×</button>
+        <div class="letter-date">${l.date}</div>
+        ${l.feeling ? `<div class="letter-feeling-tag">${l.feeling}</div>` : ''}
+        <div class="letter-text">${l.text.replace(/\n/g,'<br>')}</div>
+      `;
+      list.appendChild(card);
+    });
+  }
+
+  function deleteLetter(i) {
+    const letters = JSON.parse(localStorage.getItem('nightLetters') || '[]');
+    letters.splice(i, 1);
+    localStorage.setItem('nightLetters', JSON.stringify(letters));
+    renderLetters();
+  }
+
+  renderLetters();
+</script>
+</body>
+</html>
