@@ -1,1 +1,826 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>薫 — 詩集</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@200;300;400;500&family=IM+Fell+English:ital@0;1&family=Shippori+Mincho:wght@300;400;500&display=swap');
 
+:root {
+  --bg: #f5f0e8;
+  --ink: #1a1510;
+  --accent: #c4826a;
+  --mist: rgba(196,130,106,0.12);
+  --petal1: #f2d4d0;
+  --petal2: #e8c4c0;
+  --season-hue: 10deg;
+}
+
+/* ===== SEASON THEMES ===== */
+body.spring {
+  --bg: #faf4f0;
+  --ink: #2d1f1a;
+  --accent: #d4847a;
+  --particle: #f0b8b0;
+  --glow: rgba(240,184,176,0.3);
+  --bg-grad: radial-gradient(ellipse at 30% 20%, #fde8e4 0%, #faf4f0 50%, #f5ece8 100%);
+  --text-shadow: 0 0 40px rgba(212,132,122,0.2);
+}
+body.summer {
+  --bg: #f0f7f0;
+  --ink: #1a2d1a;
+  --accent: #6a9e5a;
+  --particle: #b8d4a8;
+  --glow: rgba(106,158,90,0.2);
+  --bg-grad: radial-gradient(ellipse at 70% 30%, #e8f5d8 0%, #f0f7f0 50%, #e8f0e0 100%);
+  --text-shadow: 0 0 40px rgba(106,158,90,0.2);
+}
+body.autumn {
+  --bg: #f7f0e8;
+  --ink: #2d1f10;
+  --accent: #c87820;
+  --particle: #e8b870;
+  --glow: rgba(200,120,32,0.2);
+  --bg-grad: radial-gradient(ellipse at 40% 60%, #f5ddb0 0%, #f7f0e8 50%, #f0e8d8 100%);
+  --text-shadow: 0 0 40px rgba(200,120,32,0.2);
+}
+body.winter {
+  --bg: #f0f2f5;
+  --ink: #151820;
+  --accent: #607898;
+  --particle: #c0d0e0;
+  --glow: rgba(96,120,152,0.2);
+  --bg-grad: radial-gradient(ellipse at 60% 20%, #dde8f5 0%, #f0f2f5 50%, #e8edf5 100%);
+  --text-shadow: 0 0 40px rgba(96,120,152,0.2);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg-grad, #faf4f0);
+  color: var(--ink);
+  font-family: 'Shippori Mincho', 'Noto Serif JP', serif;
+  min-height: 100vh;
+  transition: background 2s ease, color 1.5s ease;
+  cursor: none;
+  overflow-x: hidden;
+}
+
+/* カスタムカーソル */
+.cursor {
+  position: fixed;
+  width: 6px;
+  height: 6px;
+  background: var(--accent);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  transition: transform 0.15s ease, background 1s ease;
+  mix-blend-mode: multiply;
+}
+.cursor-trail {
+  position: fixed;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--accent);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9998;
+  transition: all 0.4s ease, border-color 1s ease;
+  opacity: 0.5;
+  mix-blend-mode: multiply;
+}
+
+/* パーティクル（花びら・葉・光） */
+.particle-canvas {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.7;
+}
+
+/* 季節セレクター */
+.season-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: center;
+  gap: 0;
+  padding: 0;
+  background: transparent;
+}
+
+.season-btn {
+  background: none;
+  border: none;
+  padding: 20px 24px;
+  font-family: 'Shippori Mincho', serif;
+  font-size: 15px;
+  letter-spacing: 0.4em;
+  cursor: pointer;
+  color: var(--ink);
+  opacity: 0.4;
+  transition: all 0.6s ease;
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+  min-width: 64px;
+}
+
+.season-btn::after {
+  content: '';
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 1px;
+  background: var(--accent);
+  transition: width 0.4s ease;
+}
+
+.season-btn:hover { opacity: 0.7; }
+.season-btn.active { opacity: 1; }
+.season-btn.active::after { width: 60%; }
+
+/* メインコンテンツ */
+.main {
+  position: relative;
+  z-index: 2;
+  padding: 100px 0 80px;
+}
+
+/* ヒーロー詩エリア */
+.poem-stage {
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 40px;
+  position: relative;
+}
+
+.poem-display {
+  max-width: 480px;
+  width: 100%;
+  text-align: center;
+  position: relative;
+}
+
+.poem-season-label {
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: 12px;
+  letter-spacing: 0.4em;
+  color: var(--accent);
+  margin-bottom: 40px;
+  opacity: 0;
+  animation: fadeUp 1s ease forwards 0.3s;
+  transition: color 1.5s ease;
+}
+
+.poem-text {
+  font-size: clamp(18px, 3vw, 26px);
+  font-weight: 300;
+  line-height: 2.4;
+  letter-spacing: 0.12em;
+  color: var(--ink);
+  text-shadow: var(--text-shadow, none);
+  opacity: 0;
+  animation: fadeUp 1.2s ease forwards 0.6s;
+  white-space: pre-wrap;
+  word-break: break-all;
+  transition: color 1.5s ease, text-shadow 1.5s ease;
+  min-height: 80px;
+}
+
+.poem-text.typing::after {
+  content: '|';
+  animation: blink 1s step-end infinite;
+  color: var(--accent);
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
+.poem-scent {
+  margin-top: 32px;
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: 13px;
+  letter-spacing: 0.25em;
+  color: var(--accent);
+  opacity: 0;
+  animation: fadeUp 1.4s ease forwards 0.9s;
+  transition: color 1.5s ease;
+}
+
+/* 香りの視覚エフェクト - 揺らぐ光 */
+.scent-aura {
+  position: absolute;
+  inset: -60px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, var(--glow, transparent) 0%, transparent 70%);
+  animation: breathe 4s ease-in-out infinite;
+  pointer-events: none;
+  transition: background 2s ease;
+}
+
+@keyframes breathe {
+  0%, 100% { transform: scale(1); opacity: 0.6; }
+  50% { transform: scale(1.15); opacity: 1; }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 区切り */
+.divider {
+  text-align: center;
+  padding: 20px 0;
+  color: var(--accent);
+  font-size: 18px;
+  opacity: 0.4;
+  letter-spacing: 12px;
+}
+
+/* 入力エリア */
+.write-section {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 0 32px 80px;
+}
+
+.write-title {
+  text-align: center;
+  font-size: 15px;
+  letter-spacing: 0.35em;
+  color: var(--accent);
+  margin-bottom: 12px;
+  transition: color 1.5s ease;
+  font-weight: 500;
+}
+
+.input-arrow {
+  text-align: center;
+  font-size: 22px;
+  color: var(--accent);
+  margin-bottom: 16px;
+  animation: bounce 1.6s ease-in-out infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(6px); }
+}
+
+.season-scent-hint {
+  text-align: center;
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  color: var(--ink);
+  opacity: 0.4;
+  margin-bottom: 24px;
+  font-style: italic;
+  font-family: 'IM Fell English', serif;
+  transition: color 1.5s ease;
+}
+
+textarea {
+  width: 100%;
+  min-height: 200px;
+  background: rgba(255,255,255,0.55);
+  border: 2px solid var(--accent);
+  border-radius: 12px;
+  color: var(--ink);
+  font-family: 'Shippori Mincho', serif;
+  font-size: 18px;
+  font-weight: 300;
+  line-height: 2.2;
+  padding: 20px 20px;
+  resize: none;
+  outline: none;
+  letter-spacing: 0.1em;
+  transition: border-color 0.4s, box-shadow 0.4s, color 1.5s ease;
+  -webkit-appearance: none;
+  box-shadow: 0 2px 20px rgba(0,0,0,0.06);
+}
+
+textarea::placeholder {
+  color: var(--ink);
+  opacity: 0.35;
+  font-style: italic;
+}
+
+textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--glow, rgba(196,130,106,0.15)), 0 2px 20px rgba(0,0,0,0.08);
+  background: rgba(255,255,255,0.8);
+}
+
+.save-btn {
+  display: block;
+  margin: 24px auto 0;
+  background: var(--accent);
+  border: none;
+  color: white;
+  padding: 18px 48px;
+  font-family: 'Shippori Mincho', serif;
+  font-size: 14px;
+  letter-spacing: 0.4em;
+  cursor: none;
+  transition: all 0.4s ease;
+  position: relative;
+  overflow: hidden;
+  border-radius: 4px;
+  width: 100%;
+  max-width: 320px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.save-btn:hover, .save-btn:active {
+  opacity: 0.85;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 24px rgba(0,0,0,0.18);
+}
+
+/* 詩コレクション */
+.collection {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 0 32px 80px;
+}
+
+.collection-title {
+  text-align: center;
+  font-size: 11px;
+  letter-spacing: 0.5em;
+  color: var(--accent);
+  margin-bottom: 48px;
+  opacity: 0.7;
+}
+
+.poem-card {
+  margin-bottom: 64px;
+  position: relative;
+  cursor: none;
+  transition: transform 0.6s ease;
+}
+
+.poem-card:hover { transform: translateX(8px); }
+
+.card-season {
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  margin-bottom: 16px;
+}
+.card-season.spring { color: #d4847a; }
+.card-season.summer { color: #6a9e5a; }
+.card-season.autumn { color: #c87820; }
+.card-season.winter { color: #607898; }
+
+.card-text {
+  font-size: 17px;
+  font-weight: 300;
+  line-height: 2.3;
+  letter-spacing: 0.1em;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.card-scent {
+  margin-top: 20px;
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  opacity: 0.45;
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+}
+
+.card-delete {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: none;
+  border: none;
+  color: var(--ink);
+  opacity: 0.15;
+  font-size: 14px;
+  cursor: none;
+  transition: opacity 0.3s;
+}
+.poem-card:hover .card-delete { opacity: 0.4; }
+
+.card-line {
+  height: 1px;
+  background: linear-gradient(to right, var(--accent), transparent);
+  margin-bottom: 16px;
+  width: 60px;
+  opacity: 0.4;
+}
+
+/* 香り名 */
+.scent-names {
+  spring: "白梅 · 桜 · すみれ";
+  summer: "レモン · 青草 · 潮";
+  autumn: "金木犀 · 焚き火 · 土";
+  winter: "ヒノキ · 冷気 · シナモン";
+}
+
+/* ノイズテクスチャ */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.4;
+}
+
+/* トースト */
+.toast {
+  position: fixed;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--ink);
+  color: var(--bg);
+  padding: 12px 28px;
+  font-size: 12px;
+  letter-spacing: 0.3em;
+  opacity: 0;
+  transition: all 0.5s ease;
+  pointer-events: none;
+  z-index: 999;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* 表示切り替え */
+.view-toggle {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  padding: 20px 0 40px;
+}
+
+.view-btn {
+  background: none;
+  border: none;
+  font-family: 'Shippori Mincho', serif;
+  font-size: 14px;
+  letter-spacing: 0.3em;
+  color: var(--ink);
+  opacity: 0.35;
+  cursor: pointer;
+  transition: opacity 0.4s;
+  padding: 12px 16px;
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+}
+.view-btn.active { opacity: 1; }
+.view-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 1px;
+  background: var(--accent);
+}
+
+.view-panel { display: none; }
+.view-panel.active { display: block; }
+</style>
+</head>
+<body class="spring">
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-trail" id="cursorTrail"></div>
+<canvas class="particle-canvas" id="canvas"></canvas>
+
+<!-- 季節ナビ -->
+<nav class="season-nav">
+  <button class="season-btn active" data-season="spring" onclick="changeSeason('spring',this)">春</button>
+  <button class="season-btn" data-season="summer" onclick="changeSeason('summer',this)">夏</button>
+  <button class="season-btn" data-season="autumn" onclick="changeSeason('autumn',this)">秋</button>
+  <button class="season-btn" data-season="winter" onclick="changeSeason('winter',this)">冬</button>
+</nav>
+
+<div class="main">
+  <!-- 詩のステージ -->
+  <div class="poem-stage">
+    <div class="poem-display">
+      <div class="scent-aura"></div>
+      <div class="poem-season-label" id="seasonLabel">spring · 白梅 · 桜 · すみれ</div>
+      <div class="poem-text" id="poemDisplay">ここに、あなたの詩が宿る</div>
+      <div class="poem-scent" id="scentLine">— 香りは言葉より先に届く —</div>
+    </div>
+  </div>
+
+  <div class="divider">· · ·</div>
+
+  <!-- 表示切り替え -->
+  <div class="view-toggle">
+    <button class="view-btn active" onclick="switchView('write',this)">詩を書く</button>
+    <button class="view-btn" onclick="switchView('collection',this)">詩集を見る</button>
+  </div>
+
+  <!-- 書くパネル -->
+  <div class="view-panel active" id="writePanel">
+    <div class="write-section">
+      <div class="write-title">✏️ ここに詩を書いてください</div>
+      <div class="input-arrow">↓</div>
+      <div class="season-scent-hint" id="scentHint">白梅 · 桜 · すみれ — 甘く、淡く、始まりの香り</div>
+      <textarea id="poemInput" placeholder="ここをタップして、言葉を書いてみて。&#10;断片でいい。ひとつの感覚でいい。" rows="7"></textarea>
+      <button class="save-btn" onclick="savePoem()">詩集に加える</button>
+    </div>
+  </div>
+
+  <!-- 詩集パネル -->
+  <div class="view-panel" id="collectionPanel">
+    <div class="collection">
+      <div class="collection-title">あなたの詩集</div>
+      <div id="poemList"></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== 季節データ =====
+const seasons = {
+  spring: {
+    label: 'spring · 白梅 · 桜 · すみれ',
+    hint: '白梅 · 桜 · すみれ — 甘く、淡く、始まりの香り',
+    scent: '— 春の香りは、忘れていたものを思い出させる —',
+    particle: { r:240, g:184, b:176 },
+    particleShape: 'petal',
+    placeholder: '桜の花びらが落ちる速さで、\nあなたの言葉を置いてみて',
+    // 春：花びらがふわふわ横に揺れながら舞い落ちる
+    speed: { vy: [0.5, 1.0], vx: [-0.8, 0.8] },
+    wobble: { amp: 1.2, speed: [0.025, 0.04] },
+    size: [4, 9],
+    count: 55,
+    opacity: [0.45, 0.8],
+    spawnRate: 0.10,
+  },
+  summer: {
+    label: 'summer · レモン · 青草 · 潮',
+    hint: 'レモン · 青草 · 潮 — 鋭く、清く、生命の香り',
+    scent: '— 夏の香りは、肌に残る —',
+    particle: { r:184, g:220, b:168 },
+    particleShape: 'drop',
+    placeholder: '汗と光と、あの夏の匂い。\n言葉にならないまま書いてみて',
+    // 夏：光の雫が勢いよく真っ直ぐ落ちる
+    speed: { vy: [2.5, 4.5], vx: [-0.2, 0.2] },
+    wobble: { amp: 0.2, speed: [0.01, 0.02] },
+    size: [2, 5],
+    count: 70,
+    opacity: [0.3, 0.65],
+    spawnRate: 0.18,
+  },
+  autumn: {
+    label: 'autumn · 金木犀 · 焚き火 · 土',
+    hint: '金木犀 · 焚き火 · 土 — 甘く、煙って、深まる香り',
+    scent: '— 秋の香りは、終わりと始まりが混じる —',
+    particle: { r:232, g:160, b:80 },
+    particleShape: 'leaf',
+    placeholder: '金木犀の香りが風に乗ったとき、\nあなたは何を思い出した？',
+    // 秋：葉がゆっくり、大きく左右に揺れながら落ちる
+    speed: { vy: [0.25, 0.55], vx: [-0.5, 0.5] },
+    wobble: { amp: 2.2, speed: [0.012, 0.022] },
+    size: [7, 16],
+    count: 35,
+    opacity: [0.5, 0.85],
+    spawnRate: 0.055,
+  },
+  winter: {
+    label: 'winter · ヒノキ · 冷気 · シナモン',
+    hint: 'ヒノキ · 冷気 · シナモン — 静かで、澄んで、温もりを恋しがる香り',
+    scent: '— 冬の香りは、距離を縮める —',
+    particle: { r:200, g:215, b:235 },
+    particleShape: 'snow',
+    placeholder: '冷たい空気の中に、\nあなたの温もりを書いてみて',
+    // 冬：雪がほとんど真下に、ごくゆっくり静かに降る
+    speed: { vy: [0.3, 0.7], vx: [-0.15, 0.15] },
+    wobble: { amp: 0.4, speed: [0.008, 0.015] },
+    size: [3, 7],
+    count: 50,
+    opacity: [0.4, 0.75],
+    spawnRate: 0.10,
+  }
+};
+
+let currentSeason = 'spring';
+let particles = [];
+
+// ===== カーソル =====
+const cursor = document.getElementById('cursor');
+const trail = document.getElementById('cursorTrail');
+let mx = 0, my = 0, tx = 0, ty = 0;
+
+document.addEventListener('mousemove', e => {
+  mx = e.clientX; my = e.clientY;
+  cursor.style.left = mx - 3 + 'px';
+  cursor.style.top = my - 3 + 'px';
+});
+
+function animateTrail() {
+  tx += (mx - tx) * 0.12;
+  ty += (my - ty) * 0.12;
+  trail.style.left = tx - 15 + 'px';
+  trail.style.top = ty - 15 + 'px';
+  requestAnimationFrame(animateTrail);
+}
+animateTrail();
+
+// ===== パーティクル =====
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+function rand(a, b) { return a + Math.random() * (b - a); }
+
+function createParticle() {
+  const s = seasons[currentSeason];
+  const [vyMin, vyMax] = s.speed.vy;
+  const [vxMin, vxMax] = s.speed.vx;
+  const [sMin, sMax] = s.size;
+  const [oMin, oMax] = s.opacity;
+  const [wsMin, wsMax] = s.wobble.speed;
+  return {
+    x: Math.random() * canvas.width,
+    y: -20,
+    vx: rand(vxMin, vxMax),
+    vy: rand(vyMin, vyMax),
+    size: rand(sMin, sMax),
+    opacity: rand(oMin, oMax),
+    rotation: Math.random() * Math.PI * 2,
+    rotSpeed: (Math.random() - 0.5) * (currentSeason === 'autumn' ? 0.03 : 0.015),
+    r: s.particle.r, g: s.particle.g, b: s.particle.b,
+    shape: s.particleShape,
+    wobble: Math.random() * Math.PI * 2,
+    wobbleSpeed: rand(wsMin, wsMax),
+    wobbleAmp: s.wobble.amp,
+  };
+}
+
+function drawParticle(p) {
+  ctx.save();
+  ctx.translate(p.x, p.y);
+  ctx.rotate(p.rotation);
+  ctx.globalAlpha = p.opacity;
+  const c = `rgba(${p.r},${p.g},${p.b},1)`;
+
+  if (p.shape === 'petal') {
+    ctx.fillStyle = c;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, p.size * 0.6, p.size, 0, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (p.shape === 'drop') {
+    ctx.fillStyle = c;
+    ctx.beginPath();
+    ctx.arc(0, 0, p.size * 0.5, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (p.shape === 'leaf') {
+    // 秋の葉：大きく、複数色でリアルな葉形
+    const colors = [
+      `rgba(220,120,40,1)`,
+      `rgba(200,80,30,1)`,
+      `rgba(230,160,60,1)`,
+      `rgba(180,90,20,1)`,
+    ];
+    ctx.fillStyle = colors[Math.floor(p.size * 13) % colors.length];
+    ctx.beginPath();
+    ctx.ellipse(0, 0, p.size * 0.38, p.size * 0.95, 0.25, 0, Math.PI * 2);
+    ctx.fill();
+    // 葉脈
+    ctx.strokeStyle = `rgba(160,70,20,0.3)`;
+    ctx.lineWidth = 0.7;
+    ctx.beginPath();
+    ctx.moveTo(0, -p.size * 0.85);
+    ctx.lineTo(0, p.size * 0.85);
+    ctx.stroke();
+  } else if (p.shape === 'snow') {
+    ctx.strokeStyle = c;
+    ctx.lineWidth = 1;
+    for (let i = 0; i < 6; i++) {
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(p.size * Math.cos(i * Math.PI / 3), p.size * Math.sin(i * Math.PI / 3));
+      ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
+
+function animateParticles() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const s = seasons[currentSeason];
+  if (Math.random() < s.spawnRate) particles.push(createParticle());
+  if (particles.length > s.count) particles.shift();
+
+  particles.forEach((p, i) => {
+    p.wobble += p.wobbleSpeed;
+    p.x += p.vx + Math.sin(p.wobble) * p.wobbleAmp;
+    p.y += p.vy;
+    p.rotation += p.rotSpeed;
+
+    if (p.y > canvas.height + 30) particles.splice(i, 1);
+    drawParticle(p);
+  });
+
+  requestAnimationFrame(animateParticles);
+}
+animateParticles();
+
+// ===== 季節変更 =====
+function changeSeason(season, btn) {
+  currentSeason = season;
+  particles = []; // 切り替え時リセット
+  document.body.className = season;
+  document.querySelectorAll('.season-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  const s = seasons[season];
+  document.getElementById('seasonLabel').textContent = s.label;
+  document.getElementById('scentLine').textContent = s.scent;
+  document.getElementById('scentHint').textContent = s.hint;
+  document.getElementById('poemInput').placeholder = s.placeholder;
+
+  // 表示詩を更新
+  const poems = loadPoems();
+  const seasonPoems = poems.filter(p => p.season === season);
+  if (seasonPoems.length > 0) {
+    displayPoem(seasonPoems[seasonPoems.length - 1]);
+  } else {
+    document.getElementById('poemDisplay').textContent = 'ここに、あなたの詩が宿る';
+  }
+}
+
+// ===== 詩を表示（タイプライター） =====
+function displayPoem(poem) {
+  const el = document.getElementById('poemDisplay');
+  el.classList.add('typing');
+  el.textContent = '';
+  const text = poem.text;
+  let i = 0;
+  const interval = setInterval(() => {
+    el.textContent += text[i];
+    i++;
+    if (i >= text.length) {
+      clearInterval(interval);
+      el.classList.remove('typing');
+    }
+  }, 60);
+}
+
+// ===== 保存 =====
+function savePoem() {
+  const text = document.getElementById('poemInput').value.trim();
+  if (!text) return;
+
+  const poems = loadPoems();
+  poems.push({
+    id: Date.now(),
+    season: currentSeason,
+    text,
+    date: new Date().toLocaleDateString('ja-JP')
+  });
+  localStorage.setItem('kaoruPoems', JSON.stringify(poems));
+
+  displayPoem({ text });
+  document.getElementById('poemInput').value = '';
+  renderCollection();
+  showToast('詩集に加えました');
+}
+
+// ===== ロード =====
+function loadPoems() {
+  return JSON.parse(localStorage.getItem('kaoruPoems') || '[]');
+}
+
+// ===== コレクション描画 =====
+const scentLabels = {
+  spring: '白梅 · 桜 · すみれ',
+  summer: 'レモン · 青草 · 潮',
+  autumn: '金木犀 · 焚き
