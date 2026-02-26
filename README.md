@@ -46,14 +46,9 @@ cd リポジトリ名
 # kaoru_poetry.html または lonely_letter.html をブラウザで開く
 ```
 
-**GitHub Pagesで公開する場合**
-1. リポジトリの Settings → Pages
-2. Branch: main / root を選択
-3. `https://あなたのID.github.io/リポジトリ名/kaoru_poetry.html` でアクセス可能
-
 ---
 
-## 技術仕様
+ 技術仕様
 
 - 純粋なHTML / CSS / JavaScript（フレームワーク不使用）
 - データ保存：localStorage（ブラウザ内のみ、外部送信なし）
